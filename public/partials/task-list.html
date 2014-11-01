@@ -1,0 +1,18 @@
+<form class="text-center" data-ng-submit="submit()">
+  <div class="form-inline">
+    <input name="title" type="text" data-ng-model="newTask.title" size="50" class="form-control" placeholder="What needs to be done?">
+    <input type="submit" class="btn btn-primary" value="submit">
+  </div>
+  <br />
+</form>
+<div class="container center-block" style="margin-top:15px;width:460px;">
+  <ul class="list-group">    
+    <li class="list-group-item clearfix" data-ng-repeat="task in tasks">
+      <div class="toggle float-left" style="width:30px;">
+          <span ng-class="{done: task.done}" ng-click="toggle(task)" class="glyphicon glyphicon-ok" style="cursor:pointer;"></span>
+      </div>
+      <div class="float-left">{{task.title}}</div>
+      <div ng-click="remove(task)" class="remove float-right glyphicon glyphicon-remove" style="cursor:pointer;"></div>
+    </li>
+  </ul>
+</div>
