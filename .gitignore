@@ -1,2 +1,3 @@
-node/node_modules
 public/components
+node/node_modules
+node/public/components
