@@ -1,67 +1,72 @@
 router = require('express').Router()
+async = require 'async'
+uuid = require 'uuid'
+redis = require 'redis'
+redisClient = redis.createClient()
 
-tasks = [
-    {id: 1, title: 'title1', desc: 'desc1', done: true},
-    {id: 2, title: 'title2', desc: 'desc2', done: false},
-  ]
-
-lastIndex = 2
+redisClient.on "error", (e)-> console.error e
 
 router.get '/', (req, res)->
   res.json { message: 'hooray! welcome to our api!' }
 
 router.get '/tasks', (req, res)->
-  res.json tasks
 
-router.get '/tasks/:id', (req, res)->
+  tasks = []
+  redisClient.keys "tasks:*", (e, keys)->
 
-  targetId = parseInt req.params.id, 10
+    async.eachSeries keys, (key, next)->
+    
+      redisClient.hgetall key, (e, res)->
+        next e if e
+        res.done = if res.done is 'true' then true else false
+        tasks.push(res)
+        do next
 
-  for task in tasks
-    if task.id is targetId
-      return res.json task
-
-  res.json task
+    , (e)->
+      console.log e if e
+      
+      res.json tasks
 
 router.put '/tasks/:id', (req, res)->
   
-  targetId = parseInt req.params.id, 10
-  
-  targetTask
-  for task in tasks
-    if task.id is targetId
-      targetTask = task
+  targetId = req.params.id
 
-  return res.json {status:'ng'} if not targetTask
+  return res.json {status:'ng'} if not targetId
+  return res.json {status:'ng'} if req.body.done is null
 
-  task.title = req.body.title if req.body.title isnt null
-  task.done = req.body.done if req.body.done isnt null
-  
-  res.json task
+  redisClient.hgetall targetId, (e, task)->
+
+    return res.json {status:'ng'} if e
+    return res.json {status:'ng'} if not task
+      
+    redisClient.hset targetId, "done", req.body.done, (e, reply)->
+
+      return res.json {status:'ng'} if e
+
+      task.done = req.body.done
+      res.json task
 
 router.delete '/tasks/:id', (req, res)->
   
-  targetId = parseInt req.params.id, 10
+  targetId = req.params.id
   
-  targetIndex = 0
-  for task in tasks
-    if task.id is targetId
-      break
-    targetIndex += 1
+  return res.json {status:'ng'} if not targetId
 
-  return res.json {status:'ng'} if not targetIndex
-
-  tasks.splice targetIndex, 1
-  res.json {status:'ok'}
+  redisClient.del targetId, (e, reply)->
+    return res.json {status:'ng'} if e
+    res.json {status:'ok'}
 
 router.post '/tasks', (req, res)->
 
-  lastIndex += 1
-  tasks.push {
-    id: lastIndex
+  id = "tasks:" + uuid.v4()
+
+  redisClient.hmset id,
+    id: id
     title: req.body.title
     done: req.body.done or false
-  }
-  res.json {status:'ok'}
+    created: (new Date).getTime()
+  , (e, reply)->
+    return res.json {status:'ng'} if e
+    res.json {status:'ok'}
 
 module.exports = router
