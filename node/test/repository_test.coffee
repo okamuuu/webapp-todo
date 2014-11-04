@@ -4,21 +4,28 @@ require 'coffee-script'
 require 'coffee-errors'
 assert = require 'assert'
 
-# create groonga database file on tempdir
-config = require 'config'
-config.database = require('temp').mkdirSync() + '/database'
+tempdir = require('temp').mkdirSync()
+nroonga = require 'nroonga'
+db = new nroonga.Database(tempdir + '/database')
 
-console.log(config.database)
+createDatabase = (callback)->
+  require('fs').readFile 'groonga/schema.grn', 'utf8', (e, text) ->
+    text.split('\n').forEach (line)->
+      db.commandSync(line) if line
+    do callback
 
 repository = require '../app/repository'
 
 describe 'repository', ->
 
+  before (done)->
+    createDatabase done
+
   describe 'get tasks', ()->
     
     it 'should return tasks', (done)->
 
-      repository.getTasks {}, (e, tasks)->
+      repository.getTasks db, {}, (e, tasks)->
         assert.ok(!e)
         assert.ok(tasks.length is 0)
         do done
@@ -27,7 +34,7 @@ describe 'repository', ->
     
     it 'should return new task', (done)->
 
-      repository.postTask {title:'test1'}, (e, task)->
+      repository.postTask db, {title:'test1'}, (e, task)->
         assert.ok(!e)
         assert.ok(task.title is 'test1')
         do done
@@ -36,7 +43,7 @@ describe 'repository', ->
     
     it 'should return modified task', (done)->
 
-      repository.putTask {title:'test2'}, (e, task)->
+      repository.putTask db, {title:'test2'}, (e, task)->
         assert.ok(!e)
         assert.ok(task.title is 'test2')
         do done
@@ -45,7 +52,7 @@ describe 'repository', ->
     
     it 'should return null', (done)->
 
-      repository.deleteTask 'key', (e)->
+      repository.deleteTask db, 'key', (e)->
         assert.ok(!e)
         do done
 

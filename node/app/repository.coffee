@@ -1,22 +1,18 @@
-config = require 'config'
-nroonga = require 'nroonga'
-db = new nroonga.Database config.database
+module.exports.getTasks = (db, condition, callback)->
 
-module.exports.getTasks = (condition, callback)->
-
-  db.command 'table_list', (e, result)->
-    console.log(e, result)
+  db.command 'select', {table: 'Tasks'}, (e, result)->
+    #console.log(e, result)
 
     callback null, []
 
-module.exports.postTask = (task, callback)->
+module.exports.postTask = (db, task, callback)->
 
   callback null, task
 
-module.exports.putTask = (task, callback)->
+module.exports.putTask = (db, task, callback)->
 
   callback null, task
 
-module.exports.deleteTask = (key, callback)->
+module.exports.deleteTask = (db, key, callback)->
 
   do callback
