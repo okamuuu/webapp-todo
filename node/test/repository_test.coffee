@@ -2,8 +2,13 @@ process.env.NODE_ENV = 'test'
 
 require 'coffee-script'
 require 'coffee-errors'
-
 assert = require 'assert'
+
+# create groonga database file on tempdir
+config = require 'config'
+config.database = require('temp').mkdirSync() + '/database'
+
+console.log(config.database)
 
 repository = require '../app/repository'
 

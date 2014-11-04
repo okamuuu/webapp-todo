@@ -1,6 +1,10 @@
 router = require('express').Router()
 async = require 'async'
 uuid = require 'uuid'
+
+nroonga = require('nroonga')
+db = new nroonga.Database('database')
+
 redis = require 'redis'
 redisClient = redis.createClient()
 

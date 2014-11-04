@@ -1,9 +1,13 @@
-nroonga = require('nroonga')
-#db = new nroonga.Database('database')
+config = require 'config'
+nroonga = require 'nroonga'
+db = new nroonga.Database config.database
 
 module.exports.getTasks = (condition, callback)->
 
-  callback null, []
+  db.command 'table_list', (e, result)->
+    console.log(e, result)
+
+    callback null, []
 
 module.exports.postTask = (task, callback)->
 
