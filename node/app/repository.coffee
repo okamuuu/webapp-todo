@@ -30,18 +30,23 @@ module.exports.postTask = (db, task, callback)->
 
 module.exports.putTask = (db, task, callback)->
 
+  console.log '--'
+  console.log task
+
   db.command 'select', {
     table: 'Tasks',
-    _key: task._key
+    query: "_key:" + task._key
   }, (e, result)->
     
     r = appUtils.parseGroongaSelectResult(result)
+
+    console.log r.items
 
     return callback e if e
     return callback new Error('not found task') if not r.count
 
     task.updated = new Date().getTime()
- 
+
     db.command 'load', {
       table: 'Tasks',
       values: JSON.stringify [ task ]
@@ -49,8 +54,14 @@ module.exports.putTask = (db, task, callback)->
     
       return callback e if e
       return callback new Error('update failed') if not count
-    
-      callback null, task
+
+      db.command 'select', {
+        table: 'Tasks',
+        query: "_key:" + task._key
+      }, (e, _result)->
+        
+        _r = appUtils.parseGroongaSelectResult(_result)
+        callback null, _r.items[0]
 
 module.exports.deleteTask = (db, key, callback)->
 

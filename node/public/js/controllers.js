@@ -9,6 +9,7 @@ taskControllers.controller('TaskListCtrl', ['$scope', 'Task', function ($scope, 
   $scope.submit = function() {
     if ($scope.newTask.title) {
       Task.save($scope.newTask, function() {
+        $scope.newTask = new Task();
         $scope.tasks = Task.query();
       });
     }

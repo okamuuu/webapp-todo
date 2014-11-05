@@ -24,7 +24,7 @@ router.put '/tasks/:key', (req, res)->
   
   targetKey = req.params.key
 
-  if not targetId
+  if not targetKey
     console.error new Error('params key is required!!')
     return res.json {status:'ng'}
   
@@ -34,7 +34,7 @@ router.put '/tasks/:key', (req, res)->
 
   repository.putTask db, {
     _key: targetKey,
-    done: done
+    done: req.body.done
   }, (e, task)->
 
     if e

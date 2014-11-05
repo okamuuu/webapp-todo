@@ -2,8 +2,8 @@ var taskServices = angular.module('taskServices', ['ngResource']);
 
 taskServices.factory('Task', ['$resource',
   function($resource){
-    return $resource('/api/tasks/:id', {}, {
-      update: { method:'PUT', params:{id:'@id'}},
-      remove: { method:'DELETE', params:{id:'@id'}}
+    return $resource('/api/tasks/:key', {}, {
+      update: { method:'PUT', params:{key:'@_key'}},
+      remove: { method:'DELETE', params:{key:'@_key'}}
     });
   }]);
