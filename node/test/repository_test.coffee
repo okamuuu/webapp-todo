@@ -8,7 +8,7 @@ tempdir = require('temp').mkdirSync()
 nroonga = require 'nroonga'
 db = new nroonga.Database(tempdir + '/database')
 
-createDatabase = (callback)->
+createTempDatabase = (callback)->
   require('fs').readFile 'groonga/schema.grn', 'utf8', (e, text) ->
     text.split('\n').forEach (line)->
       db.commandSync(line) if line
@@ -16,10 +16,12 @@ createDatabase = (callback)->
 
 repository = require '../app/repository'
 
+tasks = []
+
 describe 'repository', ->
 
   before (done)->
-    createDatabase done
+    createTempDatabase done
 
   describe 'get tasks', ()->
     
@@ -37,13 +39,17 @@ describe 'repository', ->
       repository.postTask db, {title:'test1'}, (e, task)->
         assert.ok(!e)
         assert.ok(task.title is 'test1')
+        tasks.push task
         do done
 
   describe 'put task', ()->
     
     it 'should return modified task', (done)->
 
-      repository.putTask db, {title:'test2'}, (e, task)->
+      task = tasks[0]
+      task.title = 'test2'
+
+      repository.putTask db, task, (e, task)->
         assert.ok(!e)
         assert.ok(task.title is 'test2')
         do done
@@ -52,7 +58,7 @@ describe 'repository', ->
     
     it 'should return null', (done)->
 
-      repository.deleteTask db, 'key', (e)->
+      repository.deleteTask db, tasks[0]._key, (e)->
         assert.ok(!e)
         do done
 

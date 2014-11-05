@@ -1,4 +1,7 @@
 table_create Tasks TABLE_HASH_KEY ShortText
 column_create Tasks title COLUMN_SCALAR ShortText
+column_create Tasks created COLUMN_SCALAR Time
+column_create Tasks updated COLUMN_SCALAR Time
 table_create Terms TABLE_PAT_KEY ShortText --default_tokenizer TokenBigram --normalizer NormalizerAuto
 column_create Terms task_title COLUMN_INDEX|WITH_POSITION Tasks title
+
