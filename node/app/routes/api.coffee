@@ -1,76 +1,80 @@
 router = require('express').Router()
 async = require 'async'
-uuid = require 'uuid'
+config = require 'config'
 
 nroonga = require('nroonga')
-db = new nroonga.Database('database')
+db = new nroonga.Database(config.database)
 
-redis = require 'redis'
-redisClient = redis.createClient()
-
-redisClient.on "error", (e)-> console.error e
+repository = require './../repository'
 
 router.get '/', (req, res)->
   res.json { message: 'hooray! welcome to our api!' }
 
 router.get '/tasks', (req, res)->
 
-  tasks = []
-  redisClient.keys "tasks:*", (e, keys)->
-
-    async.eachSeries keys, (key, next)->
+  repository.getTasks db, {}, (e, tasks)->
     
-      redisClient.hgetall key, (e, res)->
-        next e if e
-        res.done = if res.done is 'true' then true else false
-        tasks.push(res)
-        do next
+    if e
+      console.error e
+      return res.json {status:'ng'}
 
-    , (e)->
-      console.log e if e
+    res.json tasks
+
+router.put '/tasks/:key', (req, res)->
+  
+  targetKey = req.params.key
+
+  if not targetId
+    console.error new Error('params key is required!!')
+    return res.json {status:'ng'}
+  
+  if req.body.done is null
+    console.error new Error('params done is required!!')
+    return res.json {status:'ng'}
+
+  repository.putTask db, {
+    _key: targetKey,
+    done: done
+  }, (e, task)->
+
+    if e
+      console.error e
+      return res.json {status:'ng'}
       
-      res.json tasks
+    res.json task
 
-router.put '/tasks/:id', (req, res)->
-  
-  targetId = req.params.id
+router.delete '/tasks/:key', (req, res)->
 
-  return res.json {status:'ng'} if not targetId
-  return res.json {status:'ng'} if req.body.done is null
+  targetKey = req.params.key
+ 
+  if not targetKey
+    console.error new Error('params key is required')
+    return res.json {status:'ng'}
 
-  redisClient.hgetall targetId, (e, task)->
+  repository.deleteTask db, targetKey, (e)->
 
-    return res.json {status:'ng'} if e
-    return res.json {status:'ng'} if not task
-      
-    redisClient.hset targetId, "done", req.body.done, (e, reply)->
+    if e
+      console.error e
+      return res.json {status:'ng'}
 
-      return res.json {status:'ng'} if e
-
-      task.done = req.body.done
-      res.json task
-
-router.delete '/tasks/:id', (req, res)->
-  
-  targetId = req.params.id
-  
-  return res.json {status:'ng'} if not targetId
-
-  redisClient.del targetId, (e, reply)->
-    return res.json {status:'ng'} if e
     res.json {status:'ok'}
 
 router.post '/tasks', (req, res)->
+ 
+  if not req.body.title
+    console.error new Error('params title is required')
+    return res.json {status:'ng'}
 
-  id = "tasks:" + uuid.v4()
-
-  redisClient.hmset id,
-    id: id
+  newTask =
     title: req.body.title
     done: req.body.done or false
-    created: (new Date).getTime()
-  , (e, reply)->
-    return res.json {status:'ng'} if e
+
+  repository.postTask db, newTask, (e, task)->
+   
+    if e
+      console.error e
+      return res.json {status:'ng'}
+    
     res.json {status:'ok'}
 
 module.exports = router

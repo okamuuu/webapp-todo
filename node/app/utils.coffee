@@ -2,6 +2,9 @@ _ = require 'lodash'
 
 module.exports.parseGroongaSelectResult = (result)->
 
+  return {} if not result
+  console.log JSON.stringify result
+
   count = result[0].shift()[0]
   columns = _.map result[0].shift(), (item)-> item[0]
 

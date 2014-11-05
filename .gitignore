@@ -1,4 +1,0 @@
-node/node_modules
-node/public/components
-node/groonga/database/
-node/test/tmp/*

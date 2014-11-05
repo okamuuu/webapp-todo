@@ -12,6 +12,7 @@ module.exports.getTasks = (db, condition, callback)->
 module.exports.postTask = (db, task, callback)->
 
   task._key = uuid.v4()
+  task.done = task.done or false
   now = new Date().getTime()
   task.created = now
   task.updated = now
