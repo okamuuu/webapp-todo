@@ -1,4 +1,4 @@
 node_modules
 public/components
-groonga/db/
+groonga/db/database*
 test/tmp/*
